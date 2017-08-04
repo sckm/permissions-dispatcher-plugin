@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression
@@ -44,7 +45,11 @@ class AddPMDependencies : CodeInsightAction() {
         }
 
         if (dependenciesBlocks.firstOrNull {
-            it.findDescendantOfType<GrCommandArgumentList> { it.text.contains("com.github.hotchemi:permissionsdispatcher:") } != null
+            val gradleDependency = "com.github.hotchemi:permissionsdispatcher:"
+            // find compile 'com.github.hotchemi:permissionsdispatcher:x.y.z'
+            it.findDescendantOfType<GrCommandArgumentList> { it.text.contains(gradleDependency) } != null ||
+                    // find compile('com.github.hotchemi:permissionsdispatcher:x.y.z')
+                    it.findDescendantOfType<GrArgumentList> { it.text.contains(gradleDependency) } != null
         } != null) {
             e.presentation.isEnabledAndVisible = false
         }
